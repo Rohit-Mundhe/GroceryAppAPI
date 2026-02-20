@@ -71,8 +71,8 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
     
     // Seed initial data
-    var seeder = new DatabaseSeeder(dbContext);
-    await seeder.SeedAsync();
+    var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
+    await seeder.SeedAsync().GetAwaiter().GetResult();
 }
 
 app.UseHttpsRedirection();
