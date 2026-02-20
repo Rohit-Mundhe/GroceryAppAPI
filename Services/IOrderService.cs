@@ -1,0 +1,15 @@
+using GroceryOrderingApp.Backend.Models;
+using GroceryOrderingApp.Backend.Repositories;
+
+namespace GroceryOrderingApp.Backend.Services
+{
+    public interface IOrderService
+    {
+        Task<Order?> GetOrderByIdAsync(int id);
+        Task<List<Order>> GetOrdersByUserAsync(int userId);
+        Task<List<Order>> GetAllOrdersAsync();
+        Task<Order> CreateOrderAsync(Order order, List<(int productId, int quantity)> items);
+        Task<bool> DeliverOrderAsync(int orderId);
+        Task<bool> CancelOrderAsync(int orderId);
+    }
+}
