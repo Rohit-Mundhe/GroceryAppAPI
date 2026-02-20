@@ -72,7 +72,8 @@ using (var scope = app.Services.CreateScope())
     
     // Seed initial data
     var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
-    await seeder.SeedAsync().GetAwaiter().GetResult();
+    var seedertask = seeder.SendAsync();
+    seedertask.GetAwaiter().GetResult();
 }
 
 app.UseHttpsRedirection();
