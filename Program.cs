@@ -14,7 +14,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var rawDatabaseUrl = builder.Configuration["DATABASE_URL"];
+var connectionString = string.IsNullOrWhiteSpace(rawDatabaseUrl)
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : BuildNpgsqlConnectionString(rawDatabaseUrl);
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Database connection string is not configured.");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
@@ -72,7 +81,8 @@ using (var scope = app.Services.CreateScope())
     
     // Seed initial data
     var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
-    await seeder.SeedAsync();
+    var seedTask = seeder.SeedAsync();
+    seedTask.GetAwaiter().GetResult();
 }
 
 app.UseHttpsRedirection();
@@ -89,3 +99,46 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string BuildNpgsqlConnectionString(string input)
+{
+    if (string.IsNullOrWhiteSpace(input))
+    {
+        throw new ArgumentException("Database connection string is empty.", nameof(input));
+    }
+
+    if (input.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
+    {
+        return input;
+    }
+
+    if (input.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+        input.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        var uri = new Uri(input);
+        var userInfo = uri.UserInfo.Split(':', 2, StringSplitOptions.None);
+        var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        if (string.IsNullOrWhiteSpace(database))
+        {
+            throw new ArgumentException("DATABASE_URL is missing database name.", nameof(input));
+        }
+
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = Npgsql.SslMode.Require,
+            TrustServerCertificate = true
+        };
+
+        return builder.ConnectionString;
+    }
+
+    return input;
+}
