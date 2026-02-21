@@ -106,7 +106,9 @@ static string BuildNpgsqlConnectionString(string input)
     {
         throw new ArgumentException("Database connection string is empty.", nameof(input));
     }
-
+    if(input.Contains("${{"),StringComparison.Ordinary){
+        throw new InvalidOperationException("DATABASE_URL is Template value");
+    }
     if (input.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
     {
         return input;
