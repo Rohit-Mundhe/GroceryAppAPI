@@ -2,14 +2,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /app
 
-# Copy project file
-COPY *.csproj ./
-
-# Restore dependencies
-RUN dotnet restore
-
-# Copy entire project
+# Copy all files first
 COPY . .
+
+# Restore dependencies with explicit package source
+RUN dotnet restore --no-cache
 
 # Build
 RUN dotnet build -c Release -o /app/build

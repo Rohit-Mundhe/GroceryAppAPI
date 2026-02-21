@@ -14,7 +14,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var rawDatabaseUrl = builder.Configuration["DATABASE_URL"];
+var connectionString = string.IsNullOrWhiteSpace(rawDatabaseUrl)
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : BuildNpgsqlConnectionString(rawDatabaseUrl);
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Database connection string is not configured.");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
@@ -64,15 +73,29 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations at startup
+// Apply migrations and seed database at startup
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-    
-    // Seed initial data
-    var seeder = new DatabaseSeeder(dbContext);
-    await seeder.SeedAsync();
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        logger.LogInformation("Applying database migrations...");
+        dbContext.Database.Migrate();
+        logger.LogInformation("Database migrations completed successfully.");
+        
+        // Seed initial data
+        logger.LogInformation("Seeding database with initial data...");
+        var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
+        seeder.SeedAsync().GetAwaiter().GetResult();
+        logger.LogInformation("Database seeding completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred during database initialization. The application will continue, but database operations may fail.");
+    }
 }
 
 app.UseHttpsRedirection();
@@ -89,3 +112,51 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string BuildNpgsqlConnectionString(string input)
+{
+    if (string.IsNullOrWhiteSpace(input))
+    {
+        throw new ArgumentException("Database connection string is empty.", nameof(input));
+    }
+
+    if (input.Contains("${{", StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException("DATABASE_URL is a template value. Set DATABASE_URL by referencing the Postgres plugin variable in the backend service.");
+    }
+
+    if (input.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
+    {
+        return input;
+    }
+
+    if (input.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+        input.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        var uri = new Uri(input);
+        var userInfo = uri.UserInfo.Split(':', 2, StringSplitOptions.None);
+        var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        if (string.IsNullOrWhiteSpace(database))
+        {
+            throw new ArgumentException("DATABASE_URL is missing database name.", nameof(input));
+        }
+
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = Npgsql.SslMode.Require,
+            TrustServerCertificate = true
+        };
+
+        return builder.ConnectionString;
+    }
+
+    return input;
+}
