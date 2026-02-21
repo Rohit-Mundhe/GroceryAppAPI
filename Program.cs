@@ -106,9 +106,12 @@ static string BuildNpgsqlConnectionString(string input)
     {
         throw new ArgumentException("Database connection string is empty.", nameof(input));
     }
-    if(input.Contains("${{",StringComparison.Ordinary){
-        throw new InvalidOperationException("DATABASE_URL is Template value");
+
+    if (input.Contains("${{", StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException("DATABASE_URL is a template value. Set DATABASE_URL by referencing the Postgres plugin variable in the backend service.");
     }
+
     if (input.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
     {
         return input;
