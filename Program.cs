@@ -76,26 +76,13 @@ var app = builder.Build();
 // Apply migrations and seed database at startup
 using (var scope = app.Services.CreateScope())
 {
-    try
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        
-        logger.LogInformation("Applying database migrations...");
-        dbContext.Database.Migrate();
-        logger.LogInformation("Database migrations completed successfully.");
-        
-        // Seed initial data
-        logger.LogInformation("Seeding database with initial data...");
-        var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
-        seeder.SeedAsync().GetAwaiter().GetResult();
-        logger.LogInformation("Database seeding completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred during database initialization. The application will continue, but database operations may fail.");
-    }
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+    
+    // Seed initial data
+    var seeder = new GroceryOrderingApp.Backend.DatabaseSeeder(dbContext);
+    var seedTask = seeder.SeedAsync();
+    seedTask.GetAwaiter().GetResult();
 }
 
 app.UseHttpsRedirection();

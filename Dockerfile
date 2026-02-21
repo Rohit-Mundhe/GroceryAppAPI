@@ -2,7 +2,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /app
 
-# Copy all files first
+# Copy project file
+COPY GroceryOrderingApp.Backend.csproj ./
+
+# Restore dependencies with explicit package source
+RUN dotnet restore --no-cache
+
+# Copy entire project
 COPY . .
 
 # Restore dependencies with explicit package source
