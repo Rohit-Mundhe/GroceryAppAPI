@@ -176,8 +176,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                             description = "Fresh red tomato",
                             price = 40,
                             stockQuantity = 100,
-                            categoryId = 1,
-                            photoUrl = null
+                            categoryId = 1
                         }
                     },
                     update = new
