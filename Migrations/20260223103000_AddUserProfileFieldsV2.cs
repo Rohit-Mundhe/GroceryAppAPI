@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GroceryOrderingApp.Backend.Migrations
 {
-    [Migration("20260223091500_AddUserProfileFields")]
-    public partial class AddUserProfileFields : Migration
+    public partial class AddUserProfileFieldsV2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
