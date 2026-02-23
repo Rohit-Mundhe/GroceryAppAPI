@@ -3202,11 +3202,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Rohit_Mundhe\\WOrk\\Test\\GroceryOrderingApp.Backend\\GroceryOrderingApp.Backend.csproj",
+      "projectUniqueName": "E:\\Rohit_Mundhe\\WOrk\\Backend-API\\GroceryAppAPI\\GroceryOrderingApp.Backend.csproj",
       "projectName": "GroceryOrderingApp.Backend",
-      "projectPath": "E:\\Rohit_Mundhe\\WOrk\\Test\\GroceryOrderingApp.Backend\\GroceryOrderingApp.Backend.csproj",
+      "projectPath": "E:\\Rohit_Mundhe\\WOrk\\Backend-API\\GroceryAppAPI\\GroceryOrderingApp.Backend.csproj",
       "packagesPath": "C:\\Users\\ROHITMUNDHE2\\.nuget\\packages\\",
-      "outputPath": "E:\\Rohit_Mundhe\\WOrk\\Test\\GroceryOrderingApp.Backend\\obj\\",
+      "outputPath": "E:\\Rohit_Mundhe\\WOrk\\Backend-API\\GroceryAppAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
