@@ -37,7 +37,57 @@ namespace GroceryOrderingApp.Backend.Services
             {
                 Token = token,
                 Role = user.Role?.Name ?? "Customer",
-                UserId = user.Id
+                UserId = user.Id,
+                FullName = user.FullName,
+                MobileNumber = user.MobileNumber,
+                Address = user.Address
+            };
+        }
+
+        public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.UserId) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.FullName) ||
+                string.IsNullOrWhiteSpace(request.MobileNumber) ||
+                string.IsNullOrWhiteSpace(request.Address))
+            {
+                return new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "UserId, Password, FullName, MobileNumber, and Address are required"
+                };
+            }
+
+            var existingUser = await _userRepository.GetUserByUserIdAsync(request.UserId);
+            if (existingUser != null)
+            {
+                return new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "UserId already exists"
+                };
+            }
+
+            var user = new User
+            {
+                UserId = request.UserId.Trim(),
+                FullName = request.FullName.Trim(),
+                MobileNumber = request.MobileNumber.Trim(),
+                Address = request.Address.Trim(),
+                RoleId = 2,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+            var createdUser = await _userRepository.CreateUserAsync(user);
+
+            return new RegisterResponseDto
+            {
+                Success = true,
+                Message = "Registration successful",
+                UserId = createdUser.Id
             };
         }
 

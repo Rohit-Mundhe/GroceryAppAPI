@@ -27,5 +27,24 @@ namespace GroceryOrderingApp.Backend.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.UserId) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.FullName) ||
+                string.IsNullOrWhiteSpace(request.MobileNumber) ||
+                string.IsNullOrWhiteSpace(request.Address))
+            {
+                return BadRequest("UserId, Password, FullName, MobileNumber, and Address are required");
+            }
+
+            var result = await _authService.RegisterAsync(request);
+            if (!result.Success)
+                return BadRequest(result.Message);
+
+            return Ok(result);
+        }
     }
 }

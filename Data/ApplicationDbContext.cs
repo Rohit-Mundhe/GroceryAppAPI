@@ -34,6 +34,9 @@ namespace GroceryOrderingApp.Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.UserId).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.MobileNumber).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Address).IsRequired().HasMaxLength(300);
                 entity.Property(e => e.PasswordHash).IsRequired();
                 entity.HasIndex(e => e.UserId).IsUnique();
                 entity.HasOne(e => e.Role).WithMany(r => r.Users).HasForeignKey(e => e.RoleId);

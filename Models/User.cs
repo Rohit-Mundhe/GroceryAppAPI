@@ -4,6 +4,9 @@ namespace GroceryOrderingApp.Backend.Models
     {
         public int Id { get; set; }
         public string UserId { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string MobileNumber { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public int RoleId { get; set; }
         public int? CreatedBy { get; set; }

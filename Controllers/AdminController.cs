@@ -39,8 +39,14 @@ namespace GroceryOrderingApp.Backend.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.UserId) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest("UserId and Password are required");
+            if (string.IsNullOrWhiteSpace(request.UserId) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.FullName) ||
+                string.IsNullOrWhiteSpace(request.MobileNumber) ||
+                string.IsNullOrWhiteSpace(request.Address))
+            {
+                return BadRequest("UserId, Password, FullName, MobileNumber, and Address are required");
+            }
 
             var existingUser = await _userRepository.GetUserByUserIdAsync(request.UserId);
             if (existingUser != null)
@@ -56,6 +62,9 @@ namespace GroceryOrderingApp.Backend.Controllers
             var user = new User
             {
                 UserId = request.UserId,
+                FullName = request.FullName,
+                MobileNumber = request.MobileNumber,
+                Address = request.Address,
                 RoleId = roleId,
                 CreatedBy = int.Parse(User.FindFirst("userId")?.Value ?? "0"),
                 IsActive = true
@@ -69,6 +78,9 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Id = createdUser.Id,
                 UserId = createdUser.UserId,
                 Role = role,
+                FullName = createdUser.FullName,
+                MobileNumber = createdUser.MobileNumber,
+                Address = createdUser.Address,
                 CreatedAt = createdUser.CreatedAt,
                 IsActive = createdUser.IsActive,
                 CreatedBy = createdUser.CreatedBy
@@ -86,6 +98,9 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Id = u.Id,
                 UserId = u.UserId,
                 Role = u.Role?.Name ?? "Customer",
+                FullName = u.FullName,
+                MobileNumber = u.MobileNumber,
+                Address = u.Address,
                 CreatedAt = u.CreatedAt,
                 IsActive = u.IsActive,
                 CreatedBy = u.CreatedBy
@@ -215,6 +230,7 @@ namespace GroceryOrderingApp.Backend.Controllers
             {
                 Id = o.Id,
                 UserId = o.UserId,
+                UserFullName = o.User?.FullName ?? o.User?.UserId ?? string.Empty,
                 OrderDate = o.OrderDate,
                 Status = o.Status,
                 TotalAmount = o.TotalAmount,
@@ -242,6 +258,7 @@ namespace GroceryOrderingApp.Backend.Controllers
             {
                 Id = order.Id,
                 UserId = order.UserId,
+                UserFullName = order.User?.FullName ?? order.User?.UserId ?? string.Empty,
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,

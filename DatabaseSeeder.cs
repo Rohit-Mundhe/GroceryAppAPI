@@ -35,6 +35,9 @@ namespace GroceryOrderingApp.Backend
                 var adminUser = new User
                 {
                     UserId = "admin",
+                    FullName = "Admin User",
+                    MobileNumber = "9999999999",
+                    Address = "Admin HQ",
                     RoleId = 1,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
