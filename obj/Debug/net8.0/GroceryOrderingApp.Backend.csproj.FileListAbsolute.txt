@@ -233,3 +233,4 @@ E:\Rohit_Mundhe\WOrk\Backend-API\GroceryAppAPI\obj\Debug\net8.0\staticwebassets.
 E:\Rohit_Mundhe\WOrk\Backend-API\GroceryAppAPI\obj\Debug\net8.0\GroceryO.D93BA053.Up2Date
 E:\Rohit_Mundhe\WOrk\Backend-API\GroceryAppAPI\obj\Debug\net8.0\GroceryOrderingApp.Backend.genruntimeconfig.cache
 E:\Rohit_Mundhe\WOrk\Backend-API\GroceryAppAPI\obj\Debug\net8.0\ref\GroceryOrderingApp.Backend.dll
+e:\Rohit_Mundhe\WOrk\Backend-API\GroceryAppAPI\obj\Debug\net8.0\swae.build.ex.cache

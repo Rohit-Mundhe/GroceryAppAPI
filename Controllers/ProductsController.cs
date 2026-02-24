@@ -16,9 +16,22 @@ namespace GroceryOrderingApp.Backend.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProductsByCategory([FromQuery] int categoryId)
+        public async Task<IActionResult> GetProductsByCategory([FromQuery] int? categoryId = null)
         {
-            var products = await _productRepository.GetActiveProductsByCategoryAsync(categoryId);
+            List<Models.Product> products;
+
+            // If categoryId is not provided (or invalid), return all active products.
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                products = await _productRepository.GetActiveProductsByCategoryAsync(categoryId.Value);
+            }
+            else
+            {
+                products = (await _productRepository.GetAllProductsAsync())
+                    .Where(p => p.IsActive)
+                    .ToList();
+            }
+
             var productDtos = products.Select(p => new ProductDto
             {
                 Id = p.Id,
