@@ -225,6 +225,22 @@ namespace GroceryOrderingApp.Backend.Controllers
             return Ok(productDto);
         }
 
+        [HttpDelete("products/{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var product = await _productRepository.GetProductByIdAsync(id);
+            if (product == null)
+            {
+                return NotFound("Product not found");
+            }
+
+            // Soft delete to preserve historical order references.
+            product.IsActive = false;
+            await _productRepository.UpdateProductAsync(product);
+
+            return Ok(new { message = "Product deleted successfully" });
+        }
+
         // Orders Management
         [HttpGet("orders")]
         public async Task<IActionResult> GetAllOrders()
