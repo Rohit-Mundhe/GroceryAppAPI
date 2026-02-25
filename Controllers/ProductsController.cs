@@ -40,6 +40,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Price = p.Price,
                 StockQuantity = p.StockQuantity,
                 CategoryId = p.CategoryId,
+                PhotoUrl = p.PhotoUrl,
                 IsActive = p.IsActive
             }).ToList();
 

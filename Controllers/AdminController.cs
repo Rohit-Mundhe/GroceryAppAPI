@@ -169,6 +169,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Price = request.Price,
                 StockQuantity = request.StockQuantity,
                 CategoryId = request.CategoryId,
+                PhotoUrl = string.IsNullOrWhiteSpace(request.PhotoUrl) ? null : request.PhotoUrl.Trim(),
                 IsActive = true
             };
 
@@ -182,6 +183,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Price = createdProduct.Price,
                 StockQuantity = createdProduct.StockQuantity,
                 CategoryId = createdProduct.CategoryId,
+                PhotoUrl = createdProduct.PhotoUrl,
                 IsActive = createdProduct.IsActive
             };
 
@@ -203,6 +205,7 @@ namespace GroceryOrderingApp.Backend.Controllers
             product.Price = request.Price;
             product.StockQuantity = request.StockQuantity;
             product.CategoryId = request.CategoryId;
+            product.PhotoUrl = string.IsNullOrWhiteSpace(request.PhotoUrl) ? null : request.PhotoUrl.Trim();
             product.IsActive = request.IsActive;
 
             await _productRepository.UpdateProductAsync(product);
@@ -215,6 +218,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 Price = product.Price,
                 StockQuantity = product.StockQuantity,
                 CategoryId = product.CategoryId,
+                PhotoUrl = product.PhotoUrl,
                 IsActive = product.IsActive
             };
 
