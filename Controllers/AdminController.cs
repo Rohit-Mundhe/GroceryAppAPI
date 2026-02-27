@@ -254,6 +254,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 OrderDate = o.OrderDate,
                 Status = o.Status,
                 TotalAmount = o.TotalAmount,
+                DeliveryAddress = o.DeliveryAddress,
                 Items = o.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -282,6 +283,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,
+                DeliveryAddress = order.DeliveryAddress,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -293,6 +295,19 @@ namespace GroceryOrderingApp.Backend.Controllers
             };
 
             return Ok(orderDto);
+        }
+
+        [HttpPut("orders/{id}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Status))
+                return BadRequest("Status is required");
+
+            var success = await _orderService.UpdateOrderStatusAsync(id, request.Status);
+            if (!success)
+                return BadRequest($"Cannot update order status to '{request.Status}'");
+
+            return Ok(new { message = $"Order status updated to '{request.Status}'" });
         }
 
         [HttpPut("orders/{id}/deliver")]

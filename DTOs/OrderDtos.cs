@@ -2,6 +2,7 @@ namespace GroceryOrderingApp.Backend.DTOs
 {
     public class CreateOrderRequest
     {
+        public string? DeliveryAddress { get; set; }
         public List<OrderItemRequest> Items { get; set; } = new();
     }
 
@@ -9,6 +10,11 @@ namespace GroceryOrderingApp.Backend.DTOs
     {
         public int ProductId { get; set; }
         public int Quantity { get; set; }
+    }
+
+    public class UpdateOrderStatusRequest
+    {
+        public string Status { get; set; } = string.Empty;
     }
 
     public class OrderDto
@@ -19,6 +25,7 @@ namespace GroceryOrderingApp.Backend.DTOs
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
+        public string? DeliveryAddress { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
     }
 

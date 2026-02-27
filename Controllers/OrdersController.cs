@@ -39,7 +39,11 @@ namespace GroceryOrderingApp.Backend.Controllers
 
             try
             {
-                var order = new Order { UserId = userId };
+                var order = new Order
+                {
+                    UserId = userId,
+                    DeliveryAddress = request.DeliveryAddress?.Trim()
+                };
                 var items = request.Items.Select(i => (i.ProductId, i.Quantity)).ToList();
 
                 var createdOrder = await _orderService.CreateOrderAsync(order, items);
@@ -51,6 +55,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                     OrderDate = createdOrder.OrderDate,
                     Status = createdOrder.Status,
                     TotalAmount = createdOrder.TotalAmount,
+                    DeliveryAddress = createdOrder.DeliveryAddress,
                     Items = createdOrder.OrderItems.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -115,6 +120,7 @@ namespace GroceryOrderingApp.Backend.Controllers
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,
+                DeliveryAddress = order.DeliveryAddress,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,

@@ -64,6 +64,7 @@ namespace GroceryOrderingApp.Backend.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+                entity.Property(e => e.DeliveryAddress).HasMaxLength(500);
                 entity.HasOne(e => e.User).WithMany(u => u.Orders).HasForeignKey(e => e.UserId);
             });
 

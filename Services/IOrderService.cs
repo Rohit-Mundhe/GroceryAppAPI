@@ -9,6 +9,7 @@ namespace GroceryOrderingApp.Backend.Services
         Task<List<Order>> GetOrdersByUserAsync(int userId);
         Task<List<Order>> GetAllOrdersAsync();
         Task<Order> CreateOrderAsync(Order order, List<(int productId, int quantity)> items);
+        Task<bool> UpdateOrderStatusAsync(int orderId, string status);
         Task<bool> DeliverOrderAsync(int orderId);
         Task<bool> CancelOrderAsync(int orderId);
     }

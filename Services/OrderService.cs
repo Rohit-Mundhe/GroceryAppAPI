@@ -59,39 +59,44 @@ namespace GroceryOrderingApp.Backend.Services
             return await _orderRepository.CreateOrderAsync(order);
         }
 
-        public async Task<bool> DeliverOrderAsync(int orderId)
+        private static readonly HashSet<string> ValidStatuses =
+            new(StringComparer.OrdinalIgnoreCase) { "Pending", "Confirmed", "Shipped", "Delivered", "Cancelled" };
+
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
-            var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || order.Status != "Pending")
+            if (!ValidStatuses.Contains(status))
                 return false;
 
-            // Reduce stock
-            foreach (var item in order.OrderItems)
+            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null)
+                return false;
+
+            var previousStatus = order.Status;
+            order.Status = status;
+            await _orderRepository.UpdateOrderAsync(order);
+
+            // Reduce stock only when transitioning TO Delivered for the first time.
+            if (status.Equals("Delivered", StringComparison.OrdinalIgnoreCase) &&
+                !previousStatus.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
             {
-                var product = await _productRepository.GetProductByIdAsync(item.ProductId);
-                if (product != null)
+                foreach (var item in order.OrderItems)
                 {
-                    product.StockQuantity -= item.Quantity;
-                    if (product.StockQuantity < 0)
-                        product.StockQuantity = 0;
-                    await _productRepository.UpdateProductAsync(product);
+                    var product = await _productRepository.GetProductByIdAsync(item.ProductId);
+                    if (product != null)
+                    {
+                        product.StockQuantity = Math.Max(0, product.StockQuantity - item.Quantity);
+                        await _productRepository.UpdateProductAsync(product);
+                    }
                 }
             }
 
-            order.Status = "Delivered";
-            await _orderRepository.UpdateOrderAsync(order);
             return true;
         }
+
+        public async Task<bool> DeliverOrderAsync(int orderId)
+            => await UpdateOrderStatusAsync(orderId, "Delivered");
 
         public async Task<bool> CancelOrderAsync(int orderId)
-        {
-            var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || order.Status != "Pending")
-                return false;
-
-            order.Status = "Cancelled";
-            await _orderRepository.UpdateOrderAsync(order);
-            return true;
-        }
+            => await UpdateOrderStatusAsync(orderId, "Cancelled");
     }
 }
