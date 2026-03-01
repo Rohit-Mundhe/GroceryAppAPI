@@ -22,6 +22,7 @@ namespace GroceryOrderingApp.Backend.DTOs
         public int Id { get; set; }
         public int UserId { get; set; }
         public string UserFullName { get; set; } = string.Empty;
+        public string UserMobileNumber { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }

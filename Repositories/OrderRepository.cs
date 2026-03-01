@@ -16,6 +16,7 @@ namespace GroceryOrderingApp.Backend.Repositories
         public async Task<Order?> GetOrderByIdAsync(int id)
         {
             return await _context.Orders
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
@@ -25,6 +26,7 @@ namespace GroceryOrderingApp.Backend.Repositories
         {
             return await _context.Orders
                 .Where(o => o.UserId == userId)
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .OrderByDescending(o => o.OrderDate)

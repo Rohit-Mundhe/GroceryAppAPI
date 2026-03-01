@@ -117,6 +117,8 @@ namespace GroceryOrderingApp.Backend.Controllers
             {
                 Id = order.Id,
                 UserId = order.UserId,
+                UserFullName = order.User?.FullName ?? string.Empty,
+                UserMobileNumber = order.User?.MobileNumber ?? string.Empty,
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,
