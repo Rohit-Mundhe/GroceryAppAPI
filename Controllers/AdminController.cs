@@ -129,6 +129,17 @@ namespace GroceryOrderingApp.Backend.Controllers
             return Created($"/api/admin/categories/{createdCategory.Id}", categoryDto);
         }
 
+        [HttpDelete("categories/{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+            if (category == null)
+                return NotFound(new { success = false, message = "Category not found" });
+
+            await _categoryRepository.DeleteCategoryAsync(id);
+            return Ok(new { success = true, message = "Category deleted" });
+        }
+
         [HttpPut("categories/{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryRequest request)
         {

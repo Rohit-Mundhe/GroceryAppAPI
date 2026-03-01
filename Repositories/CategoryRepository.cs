@@ -41,6 +41,17 @@ namespace GroceryOrderingApp.Backend.Repositories
             await SaveAsync();
         }
 
+        public async Task DeleteCategoryAsync(int id)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            if (category != null)
+            {
+                category.IsActive = false;
+                _context.Categories.Update(category);
+                await SaveAsync();
+            }
+        }
+
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();

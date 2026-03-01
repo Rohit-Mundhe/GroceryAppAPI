@@ -9,6 +9,7 @@ namespace GroceryOrderingApp.Backend.Repositories
         Task<List<Category>> GetActiveCategoriesAsync();
         Task<Category> CreateCategoryAsync(Category category);
         Task UpdateCategoryAsync(Category category);
+        Task DeleteCategoryAsync(int id);
         Task SaveAsync();
     }
 }
