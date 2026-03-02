@@ -25,7 +25,11 @@ namespace GroceryOrderingApp.Backend.Controllers
             {
                 Id = c.Id,
                 Name = c.Name,
-                IsActive = c.IsActive
+                Description = c.Description,
+                PhotoUrl = c.PhotoUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
             }).ToList();
 
             return Ok(categoryDtos);

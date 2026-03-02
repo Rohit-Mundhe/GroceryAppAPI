@@ -110,19 +110,49 @@ namespace GroceryOrderingApp.Backend.Controllers
         }
 
         // Categories Management
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            var categories = await _categoryRepository.GetAllCategoriesAsync();
+            var categoryDtos = categories.Select(c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                PhotoUrl = c.PhotoUrl,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
+            }).ToList();
+            return Ok(categoryDtos);
+        }
+
         [HttpPost("categories")]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest("Category name is required");
 
-            var category = new Category { Name = request.Name, IsActive = true };
+            // Accept photoUrl or imageUrl alias
+            var photoUrl = !string.IsNullOrWhiteSpace(request.PhotoUrl)
+                ? request.PhotoUrl.Trim()
+                : (!string.IsNullOrWhiteSpace(request.ImageUrl) ? request.ImageUrl.Trim() : null);
+
+            var category = new Category
+            {
+                Name = request.Name,
+                Description = request.Description,
+                PhotoUrl = photoUrl,
+                IsActive = true
+            };
             var createdCategory = await _categoryRepository.CreateCategoryAsync(category);
 
             var categoryDto = new CategoryDto
             {
                 Id = createdCategory.Id,
                 Name = createdCategory.Name,
+                Description = createdCategory.Description,
+                PhotoUrl = createdCategory.PhotoUrl,
                 IsActive = createdCategory.IsActive
             };
 
@@ -147,8 +177,17 @@ namespace GroceryOrderingApp.Backend.Controllers
             if (category == null)
                 return NotFound("Category not found");
 
+            // Accept photoUrl or imageUrl alias
+            var photoUrl = !string.IsNullOrWhiteSpace(request.PhotoUrl)
+                ? request.PhotoUrl.Trim()
+                : (!string.IsNullOrWhiteSpace(request.ImageUrl) ? request.ImageUrl.Trim() : null);
+
             category.Name = request.Name;
+            category.Description = request.Description;
+            // Only overwrite PhotoUrl if caller supplied one; preserve existing otherwise
+            if (photoUrl != null) category.PhotoUrl = photoUrl;
             category.IsActive = request.IsActive;
+            category.UpdatedAt = DateTime.UtcNow;
 
             await _categoryRepository.UpdateCategoryAsync(category);
 
@@ -156,11 +195,18 @@ namespace GroceryOrderingApp.Backend.Controllers
             {
                 Id = category.Id,
                 Name = category.Name,
-                IsActive = category.IsActive
+                Description = category.Description,
+                PhotoUrl = category.PhotoUrl,
+                IsActive = category.IsActive,
+                UpdatedAt = category.UpdatedAt
             };
 
             return Ok(categoryDto);
         }
+
+        [HttpPatch("categories/{id}")]
+        public async Task<IActionResult> PatchCategory(int id, [FromBody] UpdateCategoryRequest request)
+            => await UpdateCategory(id, request);
 
         // Products Management
         [HttpPost("products")]

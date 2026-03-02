@@ -47,6 +47,8 @@ namespace GroceryOrderingApp.Backend.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasColumnType("text");
+                entity.Property(e => e.PhotoUrl).HasColumnType("text");
             });
 
             // Product configuration
