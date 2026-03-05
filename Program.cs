@@ -107,7 +107,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred during database initialization. The application will continue, but database operations may fail.");
     }
 }
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
