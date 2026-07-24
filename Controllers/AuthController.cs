@@ -10,10 +10,12 @@ namespace GroceryOrderingApp.Backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -54,33 +56,33 @@ namespace GroceryOrderingApp.Backend.Controllers
         [HttpPost("update-fcm-token")]
         public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenRequestDto request)
         {
-            Console.WriteLine($"[FCM] Received FCM token update request");
+            _logger.LogInformation("Received FCM token update request.");
 
             if (string.IsNullOrWhiteSpace(request.FcmToken))
             {
-                Console.WriteLine($"[FCM] Empty FCM token received");
+                _logger.LogWarning("Received empty FCM token update request.");
                 return BadRequest("FCM token is required");
             }
 
-            Console.WriteLine($"[FCM] Token length: {request.FcmToken.Length}");
+            _logger.LogInformation("Processing FCM token update. TokenLength={TokenLength}", request.FcmToken.Length);
 
             var userIdClaim = User.FindFirst("userId")?.Value;
             if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
-                Console.WriteLine($"[FCM] User not authenticated or invalid userId claim");
+                _logger.LogWarning("FCM token update rejected because the userId claim was missing or invalid.");
                 return Unauthorized("User not authenticated");
             }
 
-            Console.WriteLine($"[FCM] Processing FCM token update for user ID: {userId}");
+            _logger.LogInformation("Updating FCM token for UserId={UserId}", userId);
 
             var result = await _authService.UpdateFcmTokenAsync(userId, request.FcmToken);
             if (!result)
             {
-                Console.WriteLine($"[FCM] Failed to update FCM token for user ID: {userId}");
+                _logger.LogWarning("Failed to update FCM token for UserId={UserId}", userId);
                 return BadRequest("Failed to update FCM token");
             }
 
-            Console.WriteLine($"[FCM] FCM token update successful for user ID: {userId}");
+            _logger.LogInformation("FCM token update successful for UserId={UserId}", userId);
             return Ok(new { Success = true, Message = "FCM token updated successfully" });
         }
     }

@@ -140,23 +140,33 @@ namespace GroceryOrderingApp.Backend.Services
                 var user = await _userRepository.GetUserByIdAsync(userId);
                 if (user == null)
                 {
-                    Console.WriteLine($"[FCM] User not found with ID: {userId}");
+                    _logger.LogWarning("FCM token update failed because user was not found. UserId={UserId}", userId);
                     return false;
                 }
 
-                Console.WriteLine($"[FCM] Updating FCM token for user: {user.FullName} (ID: {userId})");
-                Console.WriteLine($"[FCM] Token: {fcmToken?.Substring(0, Math.Min(20, fcmToken?.Length ?? 0))}...");
+                var normalizedToken = fcmToken?.Trim();
+                if (string.IsNullOrWhiteSpace(normalizedToken))
+                {
+                    _logger.LogWarning("FCM token update failed because the provided token was empty. UserId={UserId}", userId);
+                    return false;
+                }
 
-                user.FcmToken = fcmToken;
+                _logger.LogInformation(
+                    "Updating FCM token for UserId={UserId}, FullName={FullName}, TokenLength={TokenLength}",
+                    userId,
+                    user.FullName,
+                    normalizedToken.Length);
+
+                user.FcmToken = normalizedToken;
                 user.UpdatedAt = DateTime.UtcNow;
                 await _userRepository.UpdateUserAsync(user);
 
-                Console.WriteLine($"[FCM] Successfully updated FCM token for user ID: {userId}");
+                _logger.LogInformation("Successfully updated FCM token for UserId={UserId}", userId);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FCM] Error updating FCM token for user ID {userId}: {ex.Message}");
+                _logger.LogError(ex, "Error updating FCM token for UserId={UserId}", userId);
                 return false;
             }
         }
@@ -189,7 +199,6 @@ namespace GroceryOrderingApp.Backend.Services
         }
     }
 }
-
 
 
 

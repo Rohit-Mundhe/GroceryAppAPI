@@ -5,6 +5,7 @@ namespace GroceryOrderingApp.Backend.Repositories
     public interface IOrderRepository
     {
         Task<Order?> GetOrderByIdAsync(int id);
+        Task<Order?> GetOrderByIdForUpdateAsync(int id);
         Task<List<Order>> GetOrdersByUserAsync(int userId);
         Task<List<Order>> GetAllOrdersAsync();
         Task<List<Order>> GetActiveOrdersByMobileAsync(string mobileNumber);

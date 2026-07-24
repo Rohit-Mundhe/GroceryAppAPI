@@ -239,6 +239,15 @@ namespace GroceryOrderingApp.Backend.Controllers
                 .Distinct()
                 .ToList();
 
+            if (dealerIds.Count == 0)
+            {
+                _logger.LogWarning(
+                    "No dealer notifications created for OrderId={OrderId}. No dealer IDs could be resolved from order items. ProductIds={ProductIds}",
+                    fullOrder.Id,
+                    string.Join(",", fullOrder.OrderItems.Select(oi => oi.ProductId)));
+                return;
+            }
+
             foreach (var dealerId in dealerIds)
             {
                 await _notificationRepository.CreateAsync(new DealerNotification
@@ -257,13 +266,20 @@ namespace GroceryOrderingApp.Backend.Controllers
                         ? "Customer"
                         : fullOrder.CustomerName;
 
-                    await _notificationService.SendOrderNotificationAsync(
+                    var notificationSent = await _notificationService.SendOrderNotificationAsync(
                         dealerId,
                         fullOrder.Id,
                         customerName,
                         fullOrder.TotalAmount);
 
-                    _logger.LogInformation("FCM push sent for OrderId={OrderId}, DealerId={DealerId}", fullOrder.Id, dealerId);
+                    if (notificationSent)
+                    {
+                        _logger.LogInformation("FCM push sent for OrderId={OrderId}, DealerId={DealerId}", fullOrder.Id, dealerId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("FCM push was not sent for OrderId={OrderId}, DealerId={DealerId}. Check earlier notification logs for the root cause.", fullOrder.Id, dealerId);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -273,7 +289,6 @@ namespace GroceryOrderingApp.Backend.Controllers
         }
     }
 }
-
 
 
 

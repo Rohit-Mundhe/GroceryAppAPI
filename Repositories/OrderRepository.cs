@@ -19,7 +19,15 @@ namespace GroceryOrderingApp.Backend.Repositories
                 .AsNoTracking()
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                .ThenInclude(oi => oi.Product!)
+                .ThenInclude(p => p.Category)
+                .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public async Task<Order?> GetOrderByIdForUpdateAsync(int id)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -30,7 +38,8 @@ namespace GroceryOrderingApp.Backend.Repositories
                 .Where(o => o.UserId == userId)
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                .ThenInclude(oi => oi.Product!)
+                .ThenInclude(p => p.Category)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -41,7 +50,8 @@ namespace GroceryOrderingApp.Backend.Repositories
                 .AsNoTracking()
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                .ThenInclude(oi => oi.Product!)
+                .ThenInclude(p => p.Category)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -56,7 +66,8 @@ namespace GroceryOrderingApp.Backend.Repositories
                 .Where(o => (o.CustomerMobileNumber == normalizedMobile || (o.User != null && o.User.MobileNumber == normalizedMobile)) && o.Status != "Delivered")
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                .ThenInclude(oi => oi.Product!)
+                .ThenInclude(p => p.Category)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -69,7 +80,12 @@ namespace GroceryOrderingApp.Backend.Repositories
 
         public async Task UpdateOrderAsync(Order order)
         {
-            _context.Orders.Update(order);
+            if (_context.Entry(order).State == EntityState.Detached)
+            {
+                _context.Orders.Attach(order);
+                _context.Entry(order).State = EntityState.Modified;
+            }
+
             await SaveAsync();
         }
 
@@ -79,4 +95,3 @@ namespace GroceryOrderingApp.Backend.Repositories
         }
     }
 }
-

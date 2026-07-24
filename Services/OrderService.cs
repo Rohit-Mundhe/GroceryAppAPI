@@ -69,19 +69,20 @@ namespace GroceryOrderingApp.Backend.Services
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
-            if (!ValidStatuses.Contains(status))
+            var normalizedStatus = status?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedStatus) || !ValidStatuses.Contains(normalizedStatus))
                 return false;
 
-            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            var order = await _orderRepository.GetOrderByIdForUpdateAsync(orderId);
             if (order == null)
                 return false;
 
-            var previousStatus = order.Status;
-            order.Status = status;
-            await _orderRepository.UpdateOrderAsync(order);
+            var previousStatus = order.Status ?? string.Empty;
+            order.Status = normalizedStatus;
+            await _orderRepository.SaveAsync();
 
             // Reduce stock only when transitioning TO Delivered for the first time.
-            if (status.Equals("Delivered", StringComparison.OrdinalIgnoreCase) &&
+            if (normalizedStatus.Equals("Delivered", StringComparison.OrdinalIgnoreCase) &&
                 !previousStatus.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
             {
                 foreach (var item in order.OrderItems)
