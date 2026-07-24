@@ -465,5 +465,118 @@ namespace GroceryOrderingApp.Backend.Controllers
                 return StatusCode(500, new { message = $"Error loading orders: {ex.Message}" });
             }
         }
+
+        [HttpGet("orders/{id}")]
+        public async Task<IActionResult> GetDealerOrderById(int id)
+        {
+            if (!int.TryParse(User.FindFirst("userId")?.Value, out var dealerId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var products = await _productRepository.GetProductsByDealerAsync(dealerId);
+                var dealerProductIds = products.Select(p => p.Id).ToHashSet();
+
+                if (dealerProductIds.Count == 0)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var order = await _orderService.GetOrderByIdAsync(id);
+                if (order == null)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var dealerItems = order.OrderItems
+                    .Where(oi => dealerProductIds.Contains(oi.ProductId))
+                    .ToList();
+
+                if (dealerItems.Count == 0)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var orderDto = new OrderDto
+                {
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    UserFullName = order.User?.FullName ?? string.Empty,
+                    UserMobileNumber = order.User?.MobileNumber ?? string.Empty,
+                    UserAddress = order.User?.Address ?? string.Empty,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    TotalAmount = order.TotalAmount,
+                    DeliveryAddress = order.DeliveryAddress,
+                    CustomerName = order.CustomerName,
+                    CustomerMobileNumber = order.CustomerMobileNumber,
+                    Items = dealerItems.Select(oi => new OrderItemDto
+                    {
+                        Id = oi.Id,
+                        ProductId = oi.ProductId,
+                        ProductName = oi.Product?.Name ?? string.Empty,
+                        Quantity = oi.Quantity,
+                        PriceAtTime = oi.PriceAtTime
+                    }).ToList()
+                };
+
+                return Ok(orderDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error loading order details: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("orders/{id}/status")]
+        public async Task<IActionResult> UpdateDealerOrderStatus(int id, [FromBody] UpdateOrderStatusRequest request)
+        {
+            if (!int.TryParse(User.FindFirst("userId")?.Value, out var dealerId))
+            {
+                return Unauthorized();
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.Status))
+            {
+                return BadRequest("Status is required");
+            }
+
+            try
+            {
+                var products = await _productRepository.GetProductsByDealerAsync(dealerId);
+                var dealerProductIds = products.Select(p => p.Id).ToHashSet();
+
+                if (dealerProductIds.Count == 0)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var order = await _orderService.GetOrderByIdAsync(id);
+                if (order == null)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var ownsAnyItem = order.OrderItems.Any(oi => dealerProductIds.Contains(oi.ProductId));
+                if (!ownsAnyItem)
+                {
+                    return NotFound("Order not found");
+                }
+
+                var success = await _orderService.UpdateOrderStatusAsync(id, request.Status.Trim());
+                if (!success)
+                {
+                    return BadRequest($"Cannot update order status to '{request.Status}'");
+                }
+
+                return Ok(new { message = $"Order status updated to '{request.Status}'" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error updating order status: {ex.Message}" });
+            }
+        }
     }
 }
