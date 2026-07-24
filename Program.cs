@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using GroceryOrderingApp.Backend.Data;
@@ -12,6 +13,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Database
 var rawDatabaseUrl = builder.Configuration["DATABASE_URL"];
@@ -109,8 +119,12 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred during database initialization. The application will continue, but database operations may fail.");
     }
 }
+app.UseForwardedHeaders();
 app.UseStaticFiles();
-app.UseHttpsRedirection();
+if (ShouldUseHttpsRedirection())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
@@ -121,6 +135,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/", () => Results.Ok(new
+{
+    success = true,
+    message = "GroceryApp API is running",
+    environment = app.Environment.EnvironmentName
+}));
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "Healthy",
+    environment = app.Environment.EnvironmentName,
+    utcTime = DateTime.UtcNow
+}));
 app.MapControllers();
 
 app.Run();
@@ -173,3 +199,15 @@ static string BuildNpgsqlConnectionString(string input)
     return input;
 }
 
+static bool ShouldUseHttpsRedirection()
+{
+    return !IsRailwayHosted();
+}
+
+static bool IsRailwayHosted()
+{
+    return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RAILWAY_PROJECT_ID")) ||
+           !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RAILWAY_SERVICE_ID")) ||
+           !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT")) ||
+           !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RAILWAY_PUBLIC_DOMAIN"));
+}
